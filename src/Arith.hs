@@ -6,7 +6,10 @@ import qualified Sum (parseNum, splitOn)
 
 import Data.List (intercalate)
 import Data.Maybe (fromJust)
+import Data.Tuple 
 import Control.Applicative ((<|>))
+import Control.Monad
+import Text.Read 
 
 -- "1+2*3+4*2" -> 15
 data Operator = Plus 
@@ -14,6 +17,9 @@ data Operator = Plus
               | Minus 
               | Div
               deriving (Eq)
+
+operators :: [(Operator, String)]
+operators = [(Plus, "+"), (Mult, "*"), (Minus, "-"), (Div, "/")]
 
 data AST = BinOp Operator AST AST 
          | Num  Int 
@@ -23,7 +29,8 @@ data AST = BinOp Operator AST AST
 -- Между числами и знаками операций по одному пробелу
 -- BinOp Plus (Num 13) (Num 42) -> "13 42 +"
 toPostfix :: AST -> String
-toPostfix ast = error "toPostfix not implemented"
+toPostfix (Num x) = show x
+toPostfix (BinOp op t1 t2) = intercalate " " [toPostfix t1, toPostfix t2, show op]  
 
 -- Парсит выражение в постфиксной записи 
 -- Выражение принимается только целиком (не максимально длинный префикс)
@@ -31,16 +38,23 @@ toPostfix ast = error "toPostfix not implemented"
 -- "13 42 +" -> Just (BinOp Plus (Num 13) (Num 42))
 -- "1 2 3 +" -> Nothing
 -- "1 2 + *" -> Nothing 
+
 fromPostfix :: String -> Maybe AST 
-fromPostfix input = error "fromPostfix not implemented"
+fromPostfix input = do [ast] <- foldM f [] (Sum.splitOn ' ' input)
+                       return ast
+                    where f res rest = case readMaybe rest of 
+                                            Just x ->  Just $ Num x : res
+                                            Nothing -> do {op <- lookup rest (map swap operators); (r:l:res') <- Just res; return (BinOp op l r : res')}   
 
 -- Парсит левую скобку
 parseLbr :: String -> Maybe ((), String)
-parseLbr = error "parseLbr not implemented"
+parseLbr ('(':xs) = Just ((), xs) 
+parseLbr _ = Nothing
 
 -- Парсит правую скобку
 parseRbr :: String -> Maybe ((), String)
-parseRbr = error "parseRbr not implemented"
+parseRbr (')':xs) = Just ((), xs)
+parseRbr _ = Nothing
 
 parseExpr :: String -> Maybe (AST, String)
 parseExpr input = parseSum input
@@ -49,7 +63,10 @@ parseNum :: String -> Maybe (AST, String)
 parseNum input = 
     let (num, rest) = span isDigit input in 
     case num of 
-      [] -> Nothing  
+      [] -> do (_, rest) <- parseLbr input
+               (a, rest') <- parseSum rest
+               (_, rest'') <- parseRbr rest'
+               return (a, rest'')
       xs -> Just (Num $ Sum.parseNum xs, rest)
   
   
@@ -106,3 +123,4 @@ instance Show AST where
           BinOp op l r -> printf "%s\n%s\n%s" (show op) (go (ident n) l) (go (ident n) r)
           Num i -> show i
       ident = (+1)
+
