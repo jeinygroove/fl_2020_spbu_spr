@@ -36,13 +36,233 @@ initial text={}
 
 \begin{enumerate}
   \item Доказать или опровергнуть утверждение: произведение двух минимальных автоматов всегда дает минимальный автомат (рассмотреть случаи для пересечения, объединения и разности языков).
+  
+  {\bf Решение:} Возьмем два автомата, один из которых принимает бинарные слова, 
+  оканчивающиеся на 0, а другой --- оканчивающиеся на 1. Их минимальные автоматы,
+  очевидно, выглядят так:
+  \begin{enumerate}
+  \item
+  
+  \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (A) {$A$};
+  \node[state,accepting] (B) [right=of A] {$B$};
+
+  \path (A) edge  [bend right=15]             node [below] {$0$} (B)
+        (A) edge    [loop above]          node  {$1$} (A)
+        (B) edge     [loop above]         node  {$0$} (B)
+        (B) edge  [bend right=15]            node [above] {$1$} (A);
+
+\end{tikzpicture}
+  
+  \item
+  
+  \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (a) {$a$};
+  \node[state,accepting] (b) [right=of a] {$b$};
+
+  \path (a) edge   [bend right=15]            node [below]{$1$} (b)
+        (a) edge    [loop above]          node  {$0$} (a)
+        (b) edge     [loop above]         node  {$1$} (b)
+        (b) edge   [bend right=15]           node [above] {$0$} (a);
+
+\end{tikzpicture}
+
+  \end{enumerate}
+  
+  Возьмем их произведение:
+  
+  \begin{enumerate}
+  \item Пересечение:
+  
+  \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (Aa) {$Aa$};
+  \node[state] (Ab) [right of = Aa] {$Ab$};
+  \node[state] (Ba) [below of= Aa] {$Ba$};
+  \node[state,accepting] (Bb) [below of= Ab] {$Bb$};
+
+  \path (Aa) edge              node {$1$} (Ab)
+        (Ab) edge    [loop above]          node {$1$} (Ab)
+        (Aa) edge              node {$0$} (Ba)
+        (Ab) edge  [bend left = 10]            node {$0$} (Ba)
+        (Ba) edge    [loop below]        node {$0$} (Ba)
+        (Ba) edge     [bend left = 10]           node {$1$} (Ab)
+        (Bb) edge              node {$1$} (Ab)
+        (Bb) edge              node {$0$} (Ba);
+
+\end{tikzpicture}
+
+Но минимальный автомат должен быть таким (то есть у нас пересечение пустое и нет
+терминальной вершины):
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (X) {$X$};
+
+  \path (X) edge    [loop above]          node {$0,1$} (X);
+
+    \end{tikzpicture}
+    
+    \item Объединение: 
+    
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (Aa) {$Aa$};
+  \node[state,accepting] (Ab) [right of = Aa] {$Ab$};
+  \node[state,accepting] (Ba) [below of= Aa] {$Ba$};
+  \node[state,accepting] (Bb) [below of= Ab] {$Bb$};
+
+  \path (Aa) edge              node {$1$} (Ab)
+        (Ab) edge    [loop above]          node {$1$} (Ab)
+        (Aa) edge              node {$0$} (Ba)
+        (Ab) edge  [bend left = 10]            node {$0$} (Ba)
+        (Ba) edge    [loop below]        node {$0$} (Ba)
+        (Ba) edge     [bend left = 10]           node {$1$} (Ab)
+        (Bb) edge              node {$1$} (Ab)
+        (Bb) edge              node {$0$} (Ba);
+
+\end{tikzpicture}
+     
+     Но минимальный автомат должен быть таким (то есть у нас объединение это все 
+     непустые бинарные слова):
+     
+     \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (X) {$X$};
+  \node[state,accepting] (Y) [right of = X] {$Y$};
+
+  \path (X) edge             node {$0,1$} (Y)
+           (Y) edge    [loop above]          node {$0,1$} (Y);
+
+    \end{tikzpicture}
+
+    \item Разность первого и второго языка --- это пустое множество, поэтому минимальный
+    автомат как в пересечении, а произведение без терминальных вершин, то есть такое:
+    
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (Aa) {$Aa$};
+  \node[state] (Ab) [right of = Aa] {$Ab$};
+  \node[state] (Ba) [below of= Aa] {$Ba$};
+  \node[state] (Bb) [below of= Ab] {$Bb$};
+
+  \path (Aa) edge              node {$1$} (Ab)
+        (Ab) edge    [loop above]          node {$1$} (Ab)
+        (Aa) edge              node {$0$} (Ba)
+        (Ab) edge  [bend left = 10]            node {$0$} (Ba)
+        (Ba) edge    [loop below]        node {$0$} (Ba)
+        (Ba) edge     [bend left = 10]           node {$1$} (Ab)
+        (Bb) edge              node {$1$} (Ab)
+        (Bb) edge              node {$0$} (Ba);
+
+\end{tikzpicture}
+
+    \end{enumerate}
+
+
   \item Для регулярного выражения:
    \[ (a \mid b)^+ (aa \mid bb \mid abab \mid baba)^* (a \mid b)^+\]
   Построить эквивалентные:
   \begin{enumerate}
     \item Недетерминированный конечный автомат
+    
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (A) {$A$};
+  \node[state] (B) [right of=A] {$B$};
+  \node[state] (C) [right of=B] {$C$};
+  \node[state] (D) [above left of=C] {$D$};
+  \node[state] (E) [above right of=D] {$E$};
+  \node[state] (F) [above right of=C] {$F$};
+  \node[state] (G) [below left of=C] {$G$};
+  \node[state] (H) [below right of=G] {$H$};
+  \node[state] (I) [below right of=C] {$I$};
+  \node[state] (J) [right of=C] {$J$};
+  \node[state,accepting] (K) [right of=J] {$K$};
+
+  \path (A) edge              node {$a, b$} (B)
+        (B) edge   [loop above]           node {$a, b$} (B)
+        (B) edge              node {$\varepsilon$} (C)
+        (C) edge  [bend left=10]            node {$a$} (D)
+        (D) edge  [bend left=10]            node {$a$} (C)
+        (D) edge              node {$b$} (E)
+        (E) edge              node {$a$} (F)
+        (F) edge              node {$b$} (C)
+        (C) edge  [bend left=10]             node {$b$} (G)
+        (G) edge  [bend left=10]             node {$b$} (C)
+        (G) edge              node {$a$} (H)
+        (H) edge              node {$b$} (I)
+        (I) edge              node {$a$} (C)
+        (C) edge              node {$\varepsilon$} (J)
+        (J) edge  [loop above]             node {$a, b$} (J)
+        (J) edge              node {$a, b$} (K);
+
+\end{tikzpicture}
+
     \item Недетерминированный конечный автомат без $\varepsilon$-переходов
+    
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (A) {$A$};
+  \node[state] (B) [right of=A] {$B$};
+  \node[state] (C) [right of=B] {$C$};
+  \node[state] (D) [above left of=C] {$D$};
+  \node[state] (E) [above right of=D] {$E$};
+  \node[state] (F) [above right of=C] {$F$};
+  \node[state] (G) [below left of=C] {$G$};
+  \node[state] (H) [below right of=G] {$H$};
+  \node[state] (I) [below right of=C] {$I$};
+  \node[state,accepting] (K) [right of=J] {$K$};
+
+  \path (A) edge              node {$a, b$} (B)
+        (B) edge   [loop below]           node {$a, b$} (B)
+        (B) edge              node {$a$} (D)
+        (B) edge              node {$b$} (G)
+        (B) edge   [bend right=15]           node {$a,b$} (K)
+        (C) edge  [bend left=10]            node {$a$} (D)
+        (D) edge  [bend left=10]            node {$a$} (C)
+        (D) edge              node {$b$} (E)
+        (E) edge              node {$a$} (F)
+        (F) edge              node {$b$} (C)
+        (C) edge  [bend left=10]             node {$b$} (G)
+        (G) edge  [bend left=10]             node {$b$} (C)
+        (G) edge              node {$a$} (H)
+        (H) edge              node {$b$} (I)
+        (I) edge              node {$a$} (C)
+        (K) edge [loop above] node {$a,b$} (K)
+        (C) edge              node {$a,b$} (K);
+
+\end{tikzpicture}
+    
     \item Минимальный полный детерминированный конечный автомат
+    
+    Можно присмотреться на определение регулярного языка или на предыдущий пункт и понять, что это просто все
+    такие слова, в которых хотя бы 2 символа (то есть можно просто убрать вершину  C
+    и два ромбика, который сверху и снизу) и получается:
+    
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (A) {$A$};
+  \node[state] (B) [right of=A] {$B$};
+  \node[state,accepting] (K) [right of=B] {$K$};
+
+  \path (A) edge              node {$a, b$} (B)
+        (B) edge         node {$a,b$} (K)
+        (K) edge [loop above] node {$a,b$} (K);
+
+\end{tikzpicture}
+    
   \end{enumerate}
   \item Построить регулярное выражение, распознающее тот же язык, что и автомат:
   \begin{myauto}
@@ -64,8 +284,28 @@ initial text={}
                     edge              node [above] {$c$}       (q_4)
     ;
   \end{myauto}
+  
+  {\bf Решение: } $(a|b|c)^*((a(b|c)^*a)\ |\ (b(a|c)^*b)\ |\ (c(a|b)^*c))$
+  
   \item Определить, является ли автоматным язык $\{ \omega \omega^r \mid \omega \in \{ 0, 1 \}^* \}$. Если является --- построить автомат, иначе --- доказать.
+  
+  {\bf Решение: }
+  Обозначим этот язык за $L$ и предположим, что он автоматный. Возьмем $n$ из леммы о накачке и $w = 01^{n}001^{n}0$. Длина этого слова не меньше $n$ и оно лежит в $L$, поэтому из леммы верно, что $ \exists x,y,z \in \Sigma^* :\ xyz=w, |y| \ne \varepsilon,\ |xy| \le n$, т.ч.
+$\forall k\  xy^k z \in L $. Возможны два случая:
+\begin{enumerate}
+   \item $x = \varepsilon$ (пустое слово), тогда в $y$ будет ровно 1 ноль, так как есть ограничение на длину, а в $z$ их тогда будет 3. Возьмем $k=2$ и получим, что в $xy^kz$ будет нечетное количество нулей (5), поэтому  это слово точно не будет в $L$.
+   \item $x \ne \varepsilon$. Возьмем $k = 3$. Заметим, что второй ноль в $w$ по построению должен быть в $z$, поэтому он будет после $xy^k$ (в $xy^k$ только один 0 и он в $x$, так как оно не пусто). Чтобы $xy^kz$ было в $L$ как минимум нужно, чтобы в левой и правой половине слова было по 2 нуля, но такое невозможно, потому что второй ноль стоял на позиции $n+2$ в $w$, а в таком слове на $n+2+2|y|$, а середина слова была между $n+2$ и $n+3$, а стала между $n+ 2 + |y|$ и $n+3+|y|$, то есть левее второго нуля. Поэтому такой случай тоже приводит к противоречию.
+  \end{enumerate}
+  Язык не автоматный.
+
+  
   \item Определить, является ли автоматным язык $\{ u a a v \mid u, v \in \{ a, b \}^* , |u|_b \geq |v|_a \}$. Если является --- построить автомат, иначе --- доказать.
+  
+  {\bf Решение: } Не является. Докажем это также через лемму о накачке: Пусть наш язык
+  $L$ автоматный. Берем $n$ из леммы и $w = b^naa(ba)^n$, оно лежит в $L$. Но если мы 
+  возьмем $k = 0$, то, поскольку $y$ по условию непуст, до $aa$ станет $< n$ нулей (в 
+  строке $xy^kz$ возможно только одно вхождение $aa$ для любых $x, y, z$), а после $aa$ будет $n$ символов $a$. Получили противоречие с тем, что $\forall k\ xy^kz\in L$.
+  
 \end{enumerate}
 
 \newpage
