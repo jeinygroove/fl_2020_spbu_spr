@@ -143,15 +143,15 @@ initial text={}
 
     \end{tikzpicture}
 
-    \item Разность первого и второго языка --- это пустое множество, поэтому минимальный
-    автомат как в пересечении, а произведение без терминальных вершин, то есть такое:
+    \item Разность первого и второго языка --- это первый язык, так как множества слов
+    непересекаются, автомат для него в самом начале и он меньше произведения:
     
     \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
         scale = 1,transform shape]
 
   \node[state,initial] (Aa) {$Aa$};
   \node[state] (Ab) [right of = Aa] {$Ab$};
-  \node[state] (Ba) [below of= Aa] {$Ba$};
+  \node[state, accepting] (Ba) [below of= Aa] {$Ba$};
   \node[state] (Bb) [below of= Ab] {$Bb$};
 
   \path (Aa) edge              node {$1$} (Ab)
@@ -214,33 +214,45 @@ initial text={}
         scale = 1,transform shape]
 
   \node[state,initial] (A) {$A$};
-  \node[state] (B) [right of=A] {$B$};
-  \node[state] (C) [right of=B] {$C$};
-  \node[state] (D) [above left of=C] {$D$};
+  \node[state] (BCJ) [right of=A] {$BCJ$};
+  \node[state] (D) [above left of=BCJ] {$D$};
   \node[state] (E) [above right of=D] {$E$};
-  \node[state] (F) [above right of=C] {$F$};
-  \node[state] (G) [below left of=C] {$G$};
+  \node[state] (F) [above right of=BCJ] {$F$};
+  \node[state] (G) [below left of=BCJ] {$G$};
   \node[state] (H) [below right of=G] {$H$};
-  \node[state] (I) [below right of=C] {$I$};
-  \node[state,accepting] (K) [right of=J] {$K$};
+  \node[state] (I) [below right of=BCJ] {$I$};
+  \node[state,accepting] (K) [right of=BCJ] {$K$};
 
-  \path (A) edge              node {$a, b$} (B)
-        (B) edge   [loop below]           node {$a, b$} (B)
-        (B) edge              node {$a$} (D)
-        (B) edge              node {$b$} (G)
-        (B) edge   [bend right=15]           node {$a,b$} (K)
-        (C) edge  [bend left=10]            node {$a$} (D)
-        (D) edge  [bend left=10]            node {$a$} (C)
+  \path (A) edge              node {$a, b$} (BCJ)
+        (BCJ) edge   [loop below]           node {$a, b$} (BCJ)
+        (BCJ) edge  [bend left=10]            node {$a$} (D)
+        (D) edge  [bend left=10]            node {$a$} (BCJ)
         (D) edge              node {$b$} (E)
         (E) edge              node {$a$} (F)
-        (F) edge              node {$b$} (C)
-        (C) edge  [bend left=10]             node {$b$} (G)
-        (G) edge  [bend left=10]             node {$b$} (C)
+        (F) edge              node {$b$} (BCJ)
+        (BCJ) edge  [bend left=10]             node {$b$} (G)
+        (G) edge  [bend left=10]             node {$b$} (BCJ)
         (G) edge              node {$a$} (H)
         (H) edge              node {$b$} (I)
-        (I) edge              node {$a$} (C)
+        (I) edge              node {$a$} (BCJ)
         (K) edge [loop above] node {$a,b$} (K)
-        (C) edge              node {$a,b$} (K);
+        (BCJ) edge              node {$a,b$} (K);
+
+\end{tikzpicture}
+
+   Или если сократить:
+   
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,
+        scale = 1,transform shape]
+
+  \node[state,initial] (A) {$A$};
+  \node[state] (BCJ) [right of=A] {$BCJ$};
+  \node[state,accepting] (K) [right of=BCJ] {$K$};
+
+  \path (A) edge              node {$a, b$} (BCJ)
+        (BCJ) edge   [loop below]           node {$a, b$} (BCJ)
+        (K) edge [loop above] node {$a,b$} (K)
+        (BCJ) edge              node {$a,b$} (K);
 
 \end{tikzpicture}
     
