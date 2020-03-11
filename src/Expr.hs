@@ -50,7 +50,7 @@ parseSum :: Parser String String AST
 parseSum = let
     plus = symbol '+' >>= toOperator
     minus = symbol '-' >>= toOperator
-  in uberExpr [(plus, RightAssoc), (minus, LeftAssoc)] parseMult BinOp
+  in uberExpr [(plus, LeftAssoc), (minus, LeftAssoc)] parseMult BinOp
 
 -- Парсер для натуральных чисел с 0
 parseNum :: Parser String String Int
