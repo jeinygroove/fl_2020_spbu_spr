@@ -37,21 +37,13 @@ uberExpr ((opParser, as):ps) p f =
 -- с естественными приоритетами и ассоциативностью над натуральными числами с 0.
 -- В строке могут быть скобки
 parseExpr :: Parser String String AST
-parseExpr = parseSum
-
-parseMult :: Parser String String AST
-parseMult = let
-    mult = symbol '*' >>= toOperator
-    div = symbol '/' >>= toOperator
-    parser = (Num <$> parseNum <|> symbol '(' *> parseSum <* symbol ')')
-  in uberExpr [(mult, LeftAssoc), (div, LeftAssoc)] parser BinOp
-
- 
-parseSum :: Parser String String AST
-parseSum = let
+parseExpr = let
     plus = symbol '+' >>= toOperator
     minus = symbol '-' >>= toOperator
-  in uberExpr [(plus, LeftAssoc), (minus, LeftAssoc)] parseMult BinOp
+    mult = symbol '*' >>= toOperator
+    div = symbol '/' >>= toOperator
+    parser = (Num <$> parseNum <|> symbol '(' *> parseExpr <* symbol ')')
+  in uberExpr [(plus <|> minus, LeftAssoc), (mult <|> div, LeftAssoc)] parser BinOp
 
 -- Парсер для натуральных чисел с 0
 parseNum :: Parser String String Int
