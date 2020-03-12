@@ -20,17 +20,18 @@ uberExpr :: Monoid e
 uberExpr [] p _ = p
 uberExpr ((opParser, as):ps) p f = 
   let p' = uberExpr ps p f
-      rightParser = ((\x g y -> f g x y) <$> p' <*> opParser <*> rightParser) <|> p'
-      noAssocParser = ((\x g y -> f g x y) <$> p' <*> opParser <*> p') <|> p'
-      leftParser = p' >>= parsing
-      parsing left = (do
-        op <- opParser
-        right <- p'
-        parsing $ f op left right) <|> return left
   in case as of
-    LeftAssoc -> leftParser
-    RightAssoc -> rightParser
-    NoAssoc -> noAssocParser
+    LeftAssoc -> do 
+      (ini, xs) <- (,) <$> p' <*> (many ((,) <$> opParser <*> p'))
+      return $ foldl (\rest (op, ast) -> f op rest ast) ini xs
+    RightAssoc -> do
+      (xs, ini) <- (,) <$> (many $ (,) <$> p' <*> opParser) <*> p'
+      return $ foldr (\(ast, op) rest -> f op ast rest) ini xs
+    NoAssoc -> (do 
+      ast <- p'
+      op <- opParser
+      ast' <- p'
+      return (f op ast ast')) <|> p'
 
 -- Парсер для выражений над +, -, *, /, ^ (возведение в степень)
 -- с естественными приоритетами и ассоциативностью над натуральными числами с 0.
