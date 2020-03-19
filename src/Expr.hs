@@ -73,6 +73,9 @@ parseNum = Parser $ \input -> case input of
 parseIdent :: Parser String String String
 parseIdent = ((:) <$> (satisfy isLetter <|> symbol '_')) <*> many (satisfy isLetter <|> satisfy isDigit <|> symbol '_')
 
+parseIdent :: Parser String String String
+parseIdent = error "parseIdent undefined"
+
 -- Парсер для операторов
 parseOp :: Parser String String Operator
 parseOp = plus' <|> minus' <|> mult' <|> pow' <|> eq' <|> neq' <|> ge' <|> le' <|> and' <|> or' <|> gt' <|> lt' <|> div'
