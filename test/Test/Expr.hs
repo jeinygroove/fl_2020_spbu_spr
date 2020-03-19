@@ -41,29 +41,6 @@ unit_parseNum = do
 unit_parseNegNum :: Assertion
 unit_parseNegNum = do
     runParser parseNum "123" @?= Success "" 123
-    runParser parseNum "-123" @?= Success "" (-123)
-    runParser parseNum "--123" @?= Success "" 123
-    assertBool "" $ isFailure $ runParser parseNum "+-3"
-    assertBool "" $ isFailure $ runParser parseNum "-+3"
-    assertBool "" $ isFailure $ runParser parseNum "-a"
-
-unit_parseIdent :: Assertion
-unit_parseIdent = do
-    runParser parseIdent "abc def" @?= Success " def" "abc"
-    runParser parseIdent "AbC dEf" @?= Success " dEf" "AbC"
-    runParser parseIdent "_123" @?= Success "" "_123"
-    runParser parseIdent "a_b_c d_e" @?= Success " d_e" "a_b_c"
-    runParser parseIdent "x_ " @?= Success " " "x_"
-    runParser parseIdent "abc123" @?= Success "" "abc123"
-    runParser parseIdent "_" @?= Success "" "_"
-    runParser parseIdent "abc*1" @?= Success "*1" "abc"
-    assertBool "" $ isFailure $ runParser parseIdent "123abc"
-    assertBool "" $ isFailure $ runParser parseIdent "123"
-    assertBool "" $ isFailure $ runParser parseIdent ""
-
-unit_parseNegNum :: Assertion
-unit_parseNegNum = do
-    runParser parseNum "123" @?= Success "" 123
     runParser parseNum "-0" @?= Success "" 0
     runParser parseNum "-123" @?= Success "" (-123)
     runParser parseNum "--123" @?= Success "" 123
@@ -88,7 +65,6 @@ unit_parseIdent = do
 
 unit_parseOp :: Assertion
 unit_parseOp = do
-<<<<<<< HEAD
     runParser parseOp "+1"      @?= Success "1" Plus
     runParser parseOp "**"      @?= Success "*" Mult
     runParser parseOp "-2"      @?= Success "2" Minus
@@ -101,13 +77,6 @@ unit_parseOp = do
     runParser parseOp "/=="     @?= Success "=" Nequal  
     runParser parseOp "|| True" @?= Success " True" Or  
     runParser parseOp "&&"      @?= Success "" And 
-=======
-    runParser parseOp "+1" @?= Success "1" Plus
-    runParser parseOp "**" @?= Success "*" Mult
-    runParser parseOp "-2" @?= Success "2" Minus
-    runParser parseOp "/1" @?= Success "1" Div
-    assertBool "" $ isFailure (runParser parseOp "12")
->>>>>>> a2aa99972784dab3113342c7aab8dd8f9af3c18a
 
 unit_parseExpr :: Assertion
 unit_parseExpr = do
@@ -170,11 +139,7 @@ unit_expr1 = do
 unit_expr2 :: Assertion
 unit_expr2 = do
   runParser expr2 "13" @?= Success "" (Num 13)
-<<<<<<< HEAD
   runParser expr2 "(((1)))" @?= Failure "Predicate failed"
-=======
-  assertBool "" $ isFailure $ runParser expr2 "(((1)))"
->>>>>>> a2aa99972784dab3113342c7aab8dd8f9af3c18a
   runParser expr2 "1+2*3-4/5" @?= Success "" (BinOp Div (BinOp Minus (BinOp Mult (BinOp Plus (Num 1) (Num 2)) (Num 3)) (Num 4)) (Num 5))
   runParser expr2 "1+2+3" @?= Success "" (BinOp Plus (BinOp Plus (Num 1) (Num 2)) (Num 3))
   runParser expr2 "1*2*3" @?= Success "" (BinOp Mult (BinOp Mult (Num 1) (Num 2)) (Num 3))
