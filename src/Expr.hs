@@ -63,12 +63,12 @@ div'    = symbols "/" >>= toOperator
 
 -- Парсер для целых чисел
 parseNum :: Parser String String Int
-parseNum = Parser $ \input -> case input of 
-                                ('-':xs) -> case runParser parseNum xs of
-                                              Success i res -> Success i ((-1) * res)
-                                              err -> err
-                                otherwise -> runParser parser input
-           where parser = foldl (\acc d -> 10 * acc + digitToInt d) 0 <$> some (satisfy isDigit)
+parseNum = foldl f 0 <$> parser
+  where
+    parser :: Parser String String String
+    parser = some (satisfy isDigit) <|> ((flip (++)) <$> many (symbol '-') <*> some (satisfy isDigit)) 
+    f acc ('-') = -acc 
+    f acc d     = (digitToInt d) + 10 * acc
 
 parseIdent :: Parser String String String
 parseIdent = ((:) <$> (satisfy isLetter <|> symbol '_')) <*> many (satisfy isLetter <|> satisfy isDigit <|> symbol '_')
