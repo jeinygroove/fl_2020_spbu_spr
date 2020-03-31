@@ -11,28 +11,36 @@ newtype Parser error input result
   = Parser { runParser :: input -> Result error input result }
 
 instance Functor (Parser error input) where
-  fmap = error "fmap not implemented"
-
+  fmap f p = Parser $ \input -> case runParser p input of
+                                         Failure e       -> Failure e
+                                         Success inp res -> Success inp (f res)
 instance Applicative (Parser error input) where
-  pure = error "pure not implemented"
-  (<*>) = error "<*> not implemented"
+  pure x = Parser $ \input -> Success input x 
+  (Parser p1) <*> (Parser p2) = Parser $ helper1 . p1 where
+                                helper1 (Failure e) = Failure e
+                                helper1 (Success i f) = case p2 i of 
+                                                        Failure e -> Failure e
+                                                        Success input result -> Success input (f result)
 
 instance Monad (Parser error input) where
-  return = error "return not implemented"
-
-  (>>=) = error ">>= not implemented"
+  return = pure
+  (Parser p) >>= k = Parser $ (\i -> helper (p i)) where
+                     helper (Failure e) = Failure e
+                     helper (Success i r) = runParser (k r) i 
 
 instance Monoid error => Alternative (Parser error input) where
-  empty = error "empty not implemented"
-
-  (<|>) = error "<|> not implemented"
+  empty = Parser $ \i -> Failure mempty
+  (Parser p1) <|> (Parser p2) = Parser $ \i -> case p1 i of
+                                Failure e -> p2 i
+                                s -> s
 
 -- Принимает последовательность элементов, разделенных разделителем
 -- Первый аргумент -- парсер для разделителя
 -- Второй аргумент -- парсер для элемента
 -- В последовательности должен быть хотя бы один элемент
-sepBy1 :: Parser e i sep -> Parser e i a -> Parser e i [a]
-sepBy1 sep elem = error "sepBy1 not implemented"
+sepBy1 :: Monoid e => Parser e i sep -> Parser e i a -> Parser e i [a]
+sepBy1 sep elem = (:) <$> elem <*> (helper sep elem) where
+  helper sep elem = (:) <$> (sep *> elem) <*> (helper sep elem) <|> pure []
 
 -- Альтернатива: в случае неудачи разбора первым парсером, парсит вторым
 alt' :: Parser e i a -> Parser e i a -> Parser e i a
@@ -65,9 +73,7 @@ satisfy :: Show a => (a -> Bool) -> Parser String [a] a
 satisfy p = Parser $ \input ->
   case input of
     (x:xs) | p x -> Success xs x
-    []           -> Failure $ "Empty string"
-    (x:xs)       -> Failure $ "Predicate failed"
-
+    _            -> Failure $ "Predicate failed"
 -- Успешно парсит пустую строку
 epsilon :: Parser e i ()
 epsilon = success ()
@@ -88,13 +94,12 @@ fmap' f p = Parser $ \input ->
     Failure e   -> Failure e
 
 -- Последовательное применения одного и того же парсера 1 или более раз
-some' :: Parser e i a -> Parser e i [a]
-some' p =
-  p `bind'` \a ->
-  many' p `bind'` \as ->
-  success (a : as)
+some' :: Monoid e => Parser e i a -> Parser e i [a]
+some' p = do
+  a <- p
+  as <- many' p
+  return (a : as)
 
 -- Последовательное применение одного и того же парсера 0 или более раз
-many' :: Parser e i a -> Parser e i [a]
-many' p =
-  some' p `alt'` success []
+many' :: Monoid e => Parser e i a -> Parser e i [a]
+many' p = some' p <|> return []
