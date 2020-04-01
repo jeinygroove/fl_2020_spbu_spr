@@ -104,6 +104,3 @@ parseStat = parseIf <|> parseWhile <|> parseRead <|> parseWrite <|> parseAssign 
 
 parseProg :: Parser String String LAst
 parseProg = Parser $ \input -> runParser parseSeq (removeSpaces input)
-    
-    
-
