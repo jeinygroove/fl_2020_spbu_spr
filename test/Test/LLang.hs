@@ -45,6 +45,8 @@ unit_parseAssign = do
      assertBool "" $ isFailure $ runParser p "Assign () (Seq { })"
      assertBool "" $ isFailure $ runParser p "Assign _@34 (Seq { })"
      assertBool "" $ isFailure $ runParser p "Assign x"
+     assertBool "" $ isFailure $ runParser p "Assign Assign"
+     assertBool "" $ isFailure $ runParser p "Assign Seq"
 
 unit_parseRead :: Assertion
 unit_parseRead = do
@@ -53,6 +55,7 @@ unit_parseRead = do
      runParser p "Read _123" @?= Success "" (Read "_123")
      assertBool "" $ isFailure $ runParser p "Read ("
      assertBool "" $ isFailure $ runParser p "Read 1write"
+     assertBool "" $ isFailure $ runParser p "Read While"
 
 unit_parseWrite :: Assertion
 unit_parseWrite = do
@@ -84,4 +87,5 @@ unit_parseProg = do
      assertBool "" $ isFailure $ runParser p "{}"
      assertBool "" $ isFailure $ runParser p "Read 4"
      assertBool "" $ isFailure $ runParser p "Seq {Write (3); If (x > 0);}"
+     assertBool "" $ isFailure $ runParser p "Seq {Assign Seq; Write Seq; }"
 

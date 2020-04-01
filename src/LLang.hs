@@ -4,6 +4,7 @@ import AST (AST (..), Operator (..))
 import Combinators (satisfy, Parser (..))
 import Expr (parseExpr, toOperator, parseIdent)
 import Control.Applicative
+import Control.Monad (guard)
 
 type Expr = AST
 
@@ -41,6 +42,14 @@ symbol c = satisfy (== c)
 parseString :: String -> Parser String String String
 parseString str = foldr (\ch rest -> (:) <$> symbol ch <*> rest) (pure "") str
 
+keywords = ["If", "While", "Read", "Assign", "Write", "Seq"]
+
+parseVar :: Parser String String String
+parseVar = do
+    var <- parseIdent
+    guard (not (elem var keywords))
+    return var
+
 parseIf :: Parser String String LAst
 parseIf = do 
     parseString "If("
@@ -64,7 +73,7 @@ parseWhile = do
 parseAssign :: Parser String String LAst
 parseAssign = do
     parseString "Assign"
-    var <- parseIdent
+    var <- parseVar
     parseString "("
     expr <- parseExpr
     parseString ")"
@@ -73,7 +82,7 @@ parseAssign = do
 parseRead :: Parser String String LAst
 parseRead = do
     parseString "Read"
-    var <- parseIdent
+    var <- parseVar
     return (Read var)
 
 parseWrite :: Parser String String LAst
