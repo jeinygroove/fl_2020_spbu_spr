@@ -72,6 +72,6 @@ P.S. Скобок много, если при написании кода у в�
 Пример: 
 
 - Вычисление факториала:
- `Seq {Read n; Assign i (1); While (n > 0) (Seq {Assign i (n*i); Assign n (n-1);}); Write (i);}`
+ `Seq {Read (n); Assign (i) (1); While (n > 0) (Seq {Assign (i) (n*i); Assign (n) (n-1);}); Write (i);}`
 
 
