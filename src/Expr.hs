@@ -4,8 +4,8 @@ import           AST                 (AST (..), Operator (..), Subst (..))
 import           Control.Applicative
 import qualified Data.Map            as Map
 import           Data.Char   (digitToInt, isLetter, isDigit)
-import           Combinators (Parser (..), Result (..), elem', fail',
-                              fmap', satisfy, some', symbol, sepBy1)
+import           Combinators (Parser (..), runParser, stream, Result (..), fail',
+                               satisfy, symbol, sepBy1)
 
 data Associativity
   = LeftAssoc  -- 1 @ 2 @ 3 @ 4 = (((1 @ 2) @ 3) @ 4)
@@ -46,6 +46,9 @@ uberExpr ((opParser, as):ps) p bf uf =
       (\op -> bf op ast) <$> opParser <*> p'
     ) <|> p'
 
+parseWithSep :: (Monoid e) => Parser e i r -> Parser e i a -> Parser e i [a]
+parseWithSep s p = ((:) <$> p <*> many (s *> p)) <|> pure []
+
 -- Парсер для выражений над +, -, *, /, ^ (возведение в степень)
 -- с естественными приоритетами и ассоциативностью над натуральными числами с 0.
 -- В строке могут быть скобки
@@ -53,7 +56,9 @@ parseExpr :: Parser String String AST
 parseExpr = uberExpr [(or', Binary RightAssoc), (and', Binary RightAssoc), (not', Unary),
                       (eq' <|> neq' <|> ge' <|> le' <|> gt' <|> lt', Binary NoAssoc),
                       (plus' <|> minus', Binary LeftAssoc), (mult' <|> div', Binary LeftAssoc), (minus', Unary), (pow', Binary RightAssoc)]
-                     (Num <$> parseNum <|> Ident <$> parseIdent <|> symbol '(' *> parseExpr <* symbol ')')
+                     (Num <$> parseNum <|> 
+                      FunctionCall <$> parseIdent <* symbol '(' <*> parseWithSep (symbols ", ") parseExpr <* symbol ')' <|> 
+                      Ident <$> parseIdent <|> symbol '(' *> parseExpr <* symbol ')')
                      BinOp UnaryOp
 
 symbols :: String -> Parser String String String

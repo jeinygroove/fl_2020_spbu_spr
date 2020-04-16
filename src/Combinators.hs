@@ -35,7 +35,7 @@ incrPos :: InputStream a -> InputStream a
 incrPos (InputStream str pos) = InputStream str (pos + 1)
 
 instance Functor (Parser error input) where
-  fmap f p = Parser $ \input -> case runParser p input of
+  fmap f p = Parser $ \input -> case runParser' p input of
                                          Failure e       -> Failure e
                                          Success inp res -> Success inp (f res)
 
@@ -51,7 +51,7 @@ instance Monad (Parser error input) where
   return = pure
   (Parser p) >>= k = Parser $ (\i -> helper (p i)) where
                      helper (Failure e) = Failure e
-                     helper (Success i r) = runParser (k r) i 
+                     helper (Success i r) = runParser' (k r) i 
 
 instance Monoid error => Alternative (Parser error input) where
   empty = Parser $ \input -> Failure [makeError mempty (curPos input)]

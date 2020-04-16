@@ -43,7 +43,6 @@ unit_evaluate = do
 
 unit_parseNum :: Assertion
 unit_parseNum = do
-<<<<<<< HEAD
     runParser parseNum "7" @?= Success (toStream "" 1) (7)
     runParser parseNum "12+3" @?= Success (toStream "+3" 2) (12)
     runParser parseNum "007" @?= Success (toStream "" 3) (7)

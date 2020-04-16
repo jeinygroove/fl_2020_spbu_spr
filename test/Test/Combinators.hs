@@ -34,10 +34,3 @@ unit_some = do
     runParser (some $ symbol '1') "134" @?= Success (toStream "34" 1) "1"
     runParser (some $ symbol '1') "114" @?= Success (toStream "4" 2) "11"
     runParser (some $ symbol '1') "111" @?= Success (toStream "" 3)"111"
-
-unit_sepBy :: Assertion
-unit_sepBy = do
-    runParser (sepBy1 (symbol ',') digit) "" @?= Failure predErrMsg
-    runParser (sepBy1 (symbol ',') digit) "1,4," @?= Success (toStream "," 3) ['1', '4']
-    runParser (sepBy1 (symbol ',') digit) "1,1,4" @?= Success (toStream "" 5) ['1', '1', '4']
-

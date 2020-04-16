@@ -1,8 +1,8 @@
 module LLang where
 
 import AST (Subst (..), AST (..), Operator (..))
-import Combinators (Parser (..), Result (..),
-                             satisfy, success, sepBy1)
+import Combinators (Position, runParser, Parser (..), Result (..), InputStream (..),
+                    curPos, ErrorMsg (..), satisfy, success, sepBy1, makeError)
 import Expr (parseExpr, evalExpr, toOperator, parseIdent)
 import Control.Applicative
 import Control.Monad (guard)
@@ -59,7 +59,7 @@ symbol c = satisfy (== c)
 parseString :: String -> Parser String String String
 parseString str = foldr (\ch rest -> (:) <$> symbol ch <*> rest) (pure "") str
 
-keywords = ["If", "While", "Read", "Assign", "Write", "Seq"]
+keywords = ["If", "While", "Read", "Assign", "Write", "Seq", "Def", "Return"]
 
 parseVar :: Parser String String String
 parseVar = do
@@ -72,6 +72,7 @@ getVarsE (BinOp _ a b) = getVarsE a ++ getVarsE b
 getVarsE (UnaryOp _ e) = getVarsE e
 getVarsE (Num _) = []
 getVarsE (Ident x) = [x]
+getVarsE (FunctionCall _ xs) = concat $ fmap (\e -> getVarsE e) xs
 
 parseIf :: Parser String String LAst
 parseIf = do 
@@ -123,6 +124,43 @@ parseSeq = do
     parseString "}"
     return (Seq statement)
 
+parseReturn :: Parser String String LAst
+parseReturn = do
+    parseString "Return("
+    expr <- parseExpr
+    parseString ")"
+    return (Return expr)
+
+parseFuncIf :: Parser String String LAst
+parseFuncIf = do
+     parseString "If("
+     cond <- parseExpr
+     parseString ")("
+     b1 <- parseFuncSeq
+     parseString ")("
+     b2 <- parseFuncSeq
+     parseString ")"
+     return (If cond b1 b2)
+
+parseFuncWhile :: Parser String String LAst
+parseFuncWhile = do
+     parseString "While("
+     cond <- parseExpr
+     parseString ")("
+     body <- parseFuncSeq
+     parseString ")"
+     return (While cond body)
+
+parseFuncSeq :: Parser String String LAst
+parseFuncSeq = do
+     parseString "Seq{"
+     statement <- many (parseFuncStat <* parseString ";")
+     parseString "}"
+     return (Seq statement)
+     
+parseFuncStat :: Parser String String LAst
+parseFuncStat = do parseIf <|> parseWhile <|> parseRead <|> parseWrite <|> parseAssign <|> parseSeq <|> parseReturn
+
 parseStat :: Parser String String LAst
 parseStat = parseIf <|> parseWhile <|> parseRead <|> parseWrite <|> parseAssign <|> parseSeq
 
@@ -137,18 +175,38 @@ checkCorrectness ast = isJust $ check ast []
                      f (Just vars) st = check st vars
         check (Read var) vars = Just $ if (var `elem` vars) then vars else (var:vars)
         check (Assign var expr) vars = if (subset (getVarsE expr) vars) then (Just (if (elem var vars) then vars else (var:vars))) else Nothing
+        check (Return expr) vars = if (subset (getVarsE expr) vars) then (Just vars) else Nothing
 
 parseL :: Parser String String LAst
-parseL = Parser $ \input -> check $ runParser parseSeq (removeSpaces input)
-            where check s@(Success _ ast) | True <- checkCorrectness ast = s
-                                          | otherwise = Failure "Incorrect programm"
-                  check f = f
+parseL = Parser $ \(InputStream stream c) -> let check s@(Success _ ast) | True <- checkCorrectness ast = s
+                                                                         | otherwise = Failure [makeError "Incorrect programm" c] 
+                                                 check f = f in check $ runParser parseSeq (removeSpaces stream)
+
+defaultReturn :: LAst -> LAst
+defaultReturn (Seq stats) = Seq (stats ++ [Return (Num 0)])
+
+parseArgs :: Parser String String [Var]
+parseArgs = do
+            x <- parseIdent
+            xs <- many (symbol ',' *> parseIdent)
+            return (x:xs)
 
 parseDef :: Parser String String Function
-parseDef = error "parseDef undefined"
+parseDef = do
+    parseString "Def("
+    name <- parseIdent
+    parseString ")("
+    args <- parseArgs <|> return []
+    parseString ")("
+    body <- parseFuncSeq
+    parseString ")"
+    return (Function name args (defaultReturn body))
 
-parseProg :: Parser String String Prog
-parseProg = error "parseProg undefined"
+parseProg :: Parser String String Program
+parseProg = do
+    functions <- many parseDef
+    main <- parseL
+    return (Program functions main)
 
 initialConf :: [Int] -> Configuration
 initialConf input = Conf Map.empty input []
@@ -173,10 +231,16 @@ instance Show Function where
   show (Function name args funBody) =
     printf "%s(%s) =\n%s" name (intercalate ", " $ map show args) (unlines $ map (identation 1) $ lines $ show funBody)
 
+instance Eq Function where
+  (==) a b = (show a) == (show b)
+
 instance Show Program where
   show (Program defs main) =
     printf "%s\n\n%s" (intercalate "\n\n" $ map show defs) (show main)
 
+instance Eq Program where
+  (==) a b = (show a) == (show b)
+  
 instance Show LAst where
   show =
       go 0
