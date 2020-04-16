@@ -32,9 +32,18 @@ unit_evaluate = do
     evaluate "((1-(2*3))+4)" @?= Just ((1-(2*3))+4)
     evaluate "1-2+3-4" @?= Just (1-2+3-4)
     evaluate "6/2*3" @?= Just (6 `div` 2 * 3)
+    evaluate "2^2" @?= Just (2^2)
+    evaluate "!2" @?= Just 0
+    evaluate "-3^2" @?= Just (-3^2)
+    evaluate "10&&42" @?= Just 1
+    evaluate "0||0" @?= Just 0
+    evaluate "10>2" @?= Just 1
+    evaluate "3>=0&&(7>7||8==8)&&3<4&&0==0" @?= Just 1
+    evaluate "-3^2||0" @?= Just 1
 
 unit_parseNum :: Assertion
 unit_parseNum = do
+<<<<<<< HEAD
     runParser parseNum "7" @?= Success (toStream "" 1) (7)
     runParser parseNum "12+3" @?= Success (toStream "+3" 2) (12)
     runParser parseNum "007" @?= Success (toStream "" 3) (7)

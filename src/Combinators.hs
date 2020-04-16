@@ -35,16 +35,23 @@ incrPos :: InputStream a -> InputStream a
 incrPos (InputStream str pos) = InputStream str (pos + 1)
 
 instance Functor (Parser error input) where
-  fmap = error "fmap not implemented"
+  fmap f p = Parser $ \input -> case runParser p input of
+                                         Failure e       -> Failure e
+                                         Success inp res -> Success inp (f res)
 
 instance Applicative (Parser error input) where
-  pure = error "pure not implemented"
-  (<*>) = error "<*> not implemented"
+  pure x = Parser $ \input -> Success input x 
+  (Parser p1) <*> (Parser p2) = Parser $ helper1 . p1 where
+                                helper1 (Failure e) = Failure e
+                                helper1 (Success i f) = case p2 i of 
+                                                        Failure e -> Failure e
+                                                        Success input result -> Success input (f result)
 
 instance Monad (Parser error input) where
-  return = error "return not implemented"
-
-  (>>=) = error ">>= not implemented"
+  return = pure
+  (Parser p) >>= k = Parser $ (\i -> helper (p i)) where
+                     helper (Failure e) = Failure e
+                     helper (Success i r) = runParser (k r) i 
 
 instance Monoid error => Alternative (Parser error input) where
   empty = Parser $ \input -> Failure [makeError mempty (curPos input)]
@@ -75,6 +82,14 @@ infixl 1 <?>
     case p input of
       Failure err -> Failure $ mergeErrors [makeError msg (maximum $ map pos err)] err
       x -> x
+
+-- Принимает последовательность элементов, разделенных разделителем
+-- Первый аргумент -- парсер для разделителя
+-- Второй аргумент -- парсер для элемента
+-- В последовательности должен быть хотя бы один элемент
+sepBy1 :: Monoid e => Parser e i sep -> Parser e i a -> Parser e i [a]
+sepBy1 sep elem = (:) <$> elem <*> (helper sep elem) where
+  helper sep elem = (:) <$> (sep *> elem) <*> (helper sep elem) <|> pure []
 
 -- Проверяет, что первый элемент входной последовательности -- данный символ
 symbol :: Char -> Parser String String Char
