@@ -266,17 +266,19 @@ unit_parseDef = do
     assertBool "" $ isFailure $ runParser parseDef "Def ()()"
     assertBool "" $ isFailure $ runParser parseDef "Def (name)"
     assertBool "" $ isFailure $ runParser parseDef "Def (name)(Seq {})"
+    assertBool "" $ isFailure $ runParser parseDef "Def (name)(x)(Seq {Return (x + y);})"
 
 unit_parseProg :: Assertion
 unit_parseProg = do
     let p = Parser $ \(InputStream str p) -> runParser parseProg (removeSpaces str)
-    let assertP' p str a = case runParser p str of 
-                    Success _ a' -> a @?= a'
-                    _ -> assertBool "" False 
-    assertP' p "Def(_)()(Seq{})Seq{}" (Program [(Function "_" [] (Seq [Return (Num 0)]))] (Seq []))
-    assertP' p "Def (foo)(x) (Seq { Return (x); }) Def (bar)(x) (Seq { Return (foo(x)); }) Seq { Read (x); Write (foo(x) - bar(x)); }" (Program 
+    assertP p "Def(_)()(Seq{})Seq{}" (Program [(Function "_" [] (Seq [Return (Num 0)]))] (Seq []))
+    assertP p "Def (foo)(x) (Seq { Return (x); }) Def (bar)(x) (Seq { Return (foo(x)); }) Seq { Read (x); Write (foo(x) - bar(x)); }" (Program 
         [(Function "foo" ["x"] (Seq [Return (Ident "x"), Return (Num 0)])),
          (Function "bar" ["x"] (Seq [Return (FunctionCall "foo" [Ident "x"]), Return (Num 0)]))] 
         (Seq [Read "x", Write (BinOp Minus (FunctionCall "foo" [Ident "x"]) (FunctionCall "bar" [Ident "x"]))])
      )
     assertBool "" $ isFailure $ runParser parseProg "Def (func)() (Seq { })"
+    assertBool "" $ isFailure $ runParser parseProg "Def (func)() (Seq {}) Def (g)(x, y) (Seq{}) Seq{Write(func(x));}"
+    assertBool "" $ isFailure $ runParser parseProg "Def (func)() (Seq {}) Def (g)(x, y) (Seq{}) Seq{Write(g(x));}"
+    assertBool "" $ isFailure $ runParser parseProg "Def (func)() (Seq {}) Def (g)(x, y) (Seq{ Return (f(x));}) Seq{}"
+    assertBool "" $ isFailure $ runParser parseProg "Def (func)() (Seq {}) Def (g)(x, y) (Seq{}) Seq{Write(h(x));}"

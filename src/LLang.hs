@@ -3,7 +3,7 @@ module LLang where
 import AST (Subst (..), AST (..), Operator (..))
 import Combinators (Position, runParser, Parser (..), Result (..), InputStream (..),
                     curPos, ErrorMsg (..), satisfy, success, sepBy1, makeError)
-import Expr (parseExpr, evalExpr, toOperator, parseIdent)
+import Expr (parseExpr, parseWithSep, evalExpr, toOperator, parseIdent)
 import Control.Applicative
 import Control.Monad (guard)
 import           Text.Printf (printf)
@@ -47,7 +47,7 @@ stmt =
          )
     ]
 
-subset :: [Var] -> [Var] -> Bool
+subset :: Eq a => [a] -> [a] -> Bool
 subset xs ys = all (\x -> x `elem` ys) xs
 
 removeSpaces :: String -> String
@@ -164,8 +164,8 @@ parseFuncStat = do parseIf <|> parseWhile <|> parseRead <|> parseWrite <|> parse
 parseStat :: Parser String String LAst
 parseStat = parseIf <|> parseWhile <|> parseRead <|> parseWrite <|> parseAssign <|> parseSeq
 
-checkCorrectness :: LAst -> Bool
-checkCorrectness ast = isJust $ check ast [] 
+checkCorrectnessV :: [Var] -> LAst -> Bool
+checkCorrectnessV vars ast = isJust $ check ast vars 
   where check :: LAst -> [Var] -> Maybe [Var]
         check (If cond e1 e2) vars = if (subset (getVarsE cond) vars && isJust (check e1 vars) && isJust (check e2 vars)) then (Just vars) else Nothing
         check (While cond body) vars = if (subset (getVarsE cond) vars && isJust (check body vars)) then (Just vars) else Nothing
@@ -178,9 +178,9 @@ checkCorrectness ast = isJust $ check ast []
         check (Return expr) vars = if (subset (getVarsE expr) vars) then (Just vars) else Nothing
 
 parseL :: Parser String String LAst
-parseL = Parser $ \(InputStream stream c) -> let check s@(Success _ ast) | True <- checkCorrectness ast = s
+parseL = Parser $ \(InputStream stream c) -> let check s@(Success _ ast) | True <- checkCorrectnessV [] ast = s
                                                                          | otherwise = Failure [makeError "Incorrect programm" c] 
-                                                 check f = f in check $ runParser parseSeq (removeSpaces stream)
+                                                 check f = f in check $ runParser' parseSeq (InputStream (removeSpaces stream) c)
 
 defaultReturn :: LAst -> LAst
 defaultReturn (Seq stats) = Seq (stats ++ [Return (Num 0)])
@@ -188,11 +188,11 @@ defaultReturn (Seq stats) = Seq (stats ++ [Return (Num 0)])
 parseArgs :: Parser String String [Var]
 parseArgs = do
             x <- parseIdent
-            xs <- many (symbol ',' *> parseIdent)
+            xs <- many (parseString "," *> parseIdent)
             return (x:xs)
 
-parseDef :: Parser String String Function
-parseDef = do
+parseDef' :: Parser String String Function
+parseDef' = do
     parseString "Def("
     name <- parseIdent
     parseString ")("
@@ -202,11 +202,43 @@ parseDef = do
     parseString ")"
     return (Function name args (defaultReturn body))
 
-parseProg :: Parser String String Program
-parseProg = do
+parseDef :: Parser String String Function
+parseDef = Parser $ \(InputStream stream c) -> let check s@(Success _ (Function _ vars ast)) | True <- checkCorrectnessV vars ast  = s
+                                                                                             | otherwise = Failure [makeError "Incorrect function definition" c]
+                                                   check f = f in check $ runParser' parseDef' (InputStream (removeSpaces stream) c)
+                                                     
+
+parseProg' :: Parser String String Program
+parseProg' = do
     functions <- many parseDef
     main <- parseL
     return (Program functions main)
+
+getCallsE :: Expr -> [(String, Int)]
+getCallsE (FunctionCall n args) = (n, length args):(concat $ fmap (\e -> getCallsE e) args)
+getCallsE (BinOp _ e1 e2) = getCallsE e1 ++ getCallsE e2
+getCallsE (UnaryOp _ e) = getCallsE e
+getCallsE _ = [] 
+
+getCallsL :: LAst -> [(String, Int)]
+getCallsL (If cond e1 e2) = getCallsE cond ++ getCallsL e1 ++ getCallsL e2
+getCallsL (While cond body) = getCallsE cond ++ getCallsL body
+getCallsL (Write e) = getCallsE e
+getCallsL (Return e) = getCallsE e
+getCallsL (Assign _ e) = getCallsE e
+getCallsL (Seq stmts) = concat $ fmap (\last -> getCallsL last) stmts
+getCallsL _ = []
+
+getCalls :: Program -> [(String, Int)]
+getCalls (Program functions main) = getCallsL main ++ foldr (\(Function _ _ body) calls -> getCallsL body ++ calls) [] functions 
+
+getDefs :: Program -> [(String, Int)]
+getDefs (Program functions _) = foldr (\(Function n args _) defs -> (n, length args):defs) [] functions
+
+parseProg :: Parser String String Program
+parseProg = Parser $ \(InputStream stream c) -> let check s@(Success _ program) | True <- getCalls program `subset` getDefs program  = s
+                                                                                | otherwise = Failure [makeError "Incorrect function definition, you call function that doesn't exist" c]
+                                                    check f = f in check $ runParser' parseProg' (InputStream (removeSpaces stream) c)
 
 initialConf :: [Int] -> Configuration
 initialConf input = Conf Map.empty input []
