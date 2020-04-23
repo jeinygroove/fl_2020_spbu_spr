@@ -9,5 +9,4 @@ evalProg (Program functions main) input = eval main (Conf Map.empty input [] (Ma
 
 parseAndEvalProg :: String -> [Int] -> Maybe Configuration
 parseAndEvalProg str input = case runParser parseProg str of
-                                  Success (InputStream s p) prog -> let len = length s in case p of 
-                                                                                          len -> evalProg prog input
+                                  Success (InputStream s p) prog -> evalProg prog input
