@@ -1,7 +1,8 @@
 # Фидбек для Данила Аргунова
 
 ## Программа 1: Вычисление НОД
-```func GCD(a, b) {
+```
+ func GCD(a, b) {
    if (a<b) {
      assign c (a);
      assign a (b);
@@ -18,7 +19,8 @@
   }
   ```
 
-  ```Program [ Function "GCD" ["a", "b"] (Seq [ If (BinOp Lt (Ident "a") (Ident "b")) 
+  ```
+  Program [ Function "GCD" ["a", "b"] (Seq [ If (BinOp Lt (Ident "a") (Ident "b")) 
                                                (Seq [Assign "c" (Ident "a"),
                                                   Assign "a" (Ident "b"),
                                                   Assign "b" (Ident "c")])
@@ -33,7 +35,8 @@
 ```
 
 ## Программа 2: Бинарное возведение в степень
-```func Pow(a, p){
+```
+  func Pow(a, p){
     assign res (1);
     while (p) {
       if (p / 2 == 1) {
@@ -51,7 +54,8 @@
 ```
 
 
-  ```Program [ Function "Pow" ["a", "p"]  (Seq [ Assign "res" (Num 1),
+  ```
+  Program [ Function "Pow" ["a", "p"]  (Seq [ Assign "res" (Num 1),
                                               While (Ident "p") (Seq [If (BinOp Equal (BinOp Div (Ident "p") (Num 2)) (Num 1))  
                                                                       (Seq [Assign "res" (BinOp Mult (Ident "res") (Ident "a"))])
                                                                       (Seq []),
@@ -63,7 +67,8 @@
 ```
 
 ## Программа 3: Проверка числа на то, что оно делится на каждую из своих цифр
-```func func(n) { 
+```
+  func func(n) { 
    assign res (1);
     while (n >= 10) {
       assign res (check(n, (n-(n/10)*10)));
@@ -83,7 +88,8 @@
   }
 ```
 
- ``` Program [Function "func" ["n"] (Seq [Assign "res" (Num 1),
+ ``` 
+ Program [Function "func" ["n"] (Seq [Assign "res" (Num 1),
                                       While (BinOp Ge (Ident "n") (Num 10)) 
                                             (Seq [Assign "res" (FunctionCall "check" [ Ident "n", BinOp Minus (Ident "n") (BinOp Mult (BinOp Div (Ident "n") (Num 10)) (Num 10))]),
                                                   Assign "n" (BinOp Div (Ident "n") (Num 10))]),
