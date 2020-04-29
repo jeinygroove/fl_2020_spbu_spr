@@ -12,7 +12,6 @@
      assign b (a-b*(a/b));
      assign a (c);};
    } retrun(a);
-
   {read(a);
    read(b); 
    write(GCD(a, b));
@@ -42,7 +41,6 @@
       assign p (p / 2);
     };
   } retrun(res);
-
   {
    read(a);
    read(p);
@@ -50,7 +48,7 @@
   }`
 
 
-``Program [ Function "Pow" ["a", "p"]  (Seq [ Assign "res" (Num 1),
+`Program [ Function "Pow" ["a", "p"]  (Seq [ Assign "res" (Num 1),
                                               While (Ident "p") (Seq [If (BinOp Equal (BinOp Div (Ident "p") (Num 2)) (Num 1))  
                                                                       (Seq [Assign "res" (BinOp Mult (Ident "res") (Ident "a"))])
                                                                       (Seq []),
@@ -69,14 +67,12 @@
     }; 
     assign res (check(n, n))
  ;} retrun(res);
- 
  func check(n, i) {
    if (n==((n/i)*i)) {
      assign res (1);}
    else {
      assign res (0);};
  } retrun(res); 
-
   {
     read (n);
     write(func(n));
