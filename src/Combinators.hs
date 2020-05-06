@@ -35,7 +35,7 @@ toStream = InputStream
 
 incrPos :: Position -> Char -> Position
 incrPos (Position l c) '\n' = Position (l + 1) 0
-incrPos (Position l c) '\t' = Position l (c + 4)
+incrPos (Position l c) '\t' = Position l ((c `div` 4 + 1) * 4)
 incrPos (Position l c) _    = Position l (c + 1) 
 
 instance Functor (Parser error input) where

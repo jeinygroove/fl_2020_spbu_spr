@@ -147,7 +147,7 @@ unit_progPosition :: Assertion
 unit_progPosition = do
     assertPos (Position 4 0) "Seq {\n\tRead (n);\n\tWrite(n);\n}\n" ""
     assertPos (Position 3 0) "Seq {}\n\n\n" ""
-    assertPos (Position 2 9) "Seq {}\n\n\t \t" ""
+    assertPos (Position 2 8) "Seq {}\n\n\t \t" ""
 
 
 unit_errors :: Assertion
@@ -181,11 +181,11 @@ unit_errors = do
          "Expected \"Write\"",
          "Expected \"Assign\"",
          "Expected \"Seq\""
-        ] (Position 2 6), ErrorMsg [
+        ] (Position 2 4), ErrorMsg [
          "Expected ident",
          "Predicate failed",
          "Expected symbol: \'_\'"
-        ] (Position 2 12)]
+        ] (Position 2 10)]
     case runParser parseStat "\tAssign (@) (2);" of
      Success _ _  -> True @?= False
      Failure m    -> m @?= [ErrorMsg [
