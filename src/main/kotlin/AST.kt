@@ -2,7 +2,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException
 
 sealed class AST
 
-data class CFG_Rules(val l: AST?, val r: AST?): AST()
+data class CFG_Rules(val l: CFG_Rules?, val r: CFG_Rule): AST()
 
 data class CFG_Rule(val l: Nonterminal, val r: Rhs): AST()
 
@@ -99,3 +99,12 @@ fun Delimeter.str(): String {
 }
 
 class ParserException(message:String): ParseCancellationException(message)
+class EmptyLanguageException(): Exception()
+
+fun AST.isEpsilon(): Boolean {
+    return this is Epsilon
+}
+
+fun AST.isNonterminal(): Boolean {
+    return this is Nonterminal
+}

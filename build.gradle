@@ -5,7 +5,7 @@ plugins {
 }
 
 application {
-    mainClassName = 'CFGParser'
+    mainClassName = 'CNFConverter'
 }
 
 apply plugin: 'antlr'

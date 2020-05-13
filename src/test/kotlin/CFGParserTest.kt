@@ -41,7 +41,7 @@ internal class CFGParserTest {
         init("<S> -> /u/n/o")
         val ast = parse()
         assertEquals(
-            CFG_Rules(
+            CFG_Rules(null,
                 CFG_Rule(
                     Nonterminal("<S>"), Rhs(
                         null, null, Str(
@@ -52,8 +52,7 @@ internal class CFGParserTest {
                             )
                         )
                     )
-                ),
-                null
+                )
             ), ast
         )
         clear()
@@ -64,7 +63,7 @@ internal class CFGParserTest {
         init("<S> -> <U><N><O>")
         val ast = parse()
         assertEquals(
-            CFG_Rules(
+            CFG_Rules( null,
                 CFG_Rule(
                     Nonterminal("<S>"), Rhs(
                         null, null, Str(
@@ -75,8 +74,7 @@ internal class CFGParserTest {
                             )
                         )
                     )
-                ),
-                null
+                )
             ), ast
         )
         clear()
@@ -87,7 +85,7 @@ internal class CFGParserTest {
         init("<S> -> <U>/n<O>")
         val ast = parse()
         assertEquals(
-            CFG_Rules(
+            CFG_Rules( null,
                 CFG_Rule(
                     Nonterminal("<S>"), Rhs(
                         null, null, Str(
@@ -98,8 +96,7 @@ internal class CFGParserTest {
                             )
                         )
                     )
-                ),
-                null
+                )
             ), ast
         )
         clear()
@@ -110,7 +107,7 @@ internal class CFGParserTest {
         init("<S> -> <U> | /d | <C> ")
         val ast = parse()
         assertEquals(
-            CFG_Rules(
+            CFG_Rules(null,
                 CFG_Rule(
                     Nonterminal("<S>"), Rhs(
                         Rhs(
@@ -123,8 +120,7 @@ internal class CFGParserTest {
                             )
                         )
                     )
-                ),
-                null
+                )
             ), ast
         )
         clear()
@@ -135,7 +131,7 @@ internal class CFGParserTest {
         init("<S> -> <eps>")
         val ast = parse()
         assertEquals(
-            CFG_Rules(
+            CFG_Rules(null,
                 CFG_Rule(
                     Nonterminal("<S>"), Rhs(
                         null, null, Str(
@@ -144,8 +140,7 @@ internal class CFGParserTest {
                             )
                         )
                     )
-                ),
-                null
+                )
             ), ast
         )
         clear()
@@ -163,7 +158,7 @@ internal class CFGParserTest {
         )
         val ast = parse()
         val l = CFG_Rules(
-            CFG_Rules(
+            CFG_Rules(null,
                 CFG_Rule(
                     Nonterminal("<S>"),
                     Rhs(
@@ -175,8 +170,7 @@ internal class CFGParserTest {
                             )
                         )
                     )
-                ),
-                null
+                )
             ),
             CFG_Rule(
                 Nonterminal("<S>"),
@@ -218,7 +212,7 @@ internal class CFGParserTest {
         )
         val ast = parse()
         val l = CFG_Rules(
-            CFG_Rules(
+            CFG_Rules( null,
                 CFG_Rule(
                     Nonterminal("<S>"),
                     Rhs(
@@ -230,8 +224,7 @@ internal class CFGParserTest {
                             )
                         )
                     )
-                ),
-                null
+                )
             ),
             CFG_Rule(
                 Nonterminal("<S>"),

@@ -2,11 +2,11 @@ class CFGVisitor: GrammarBaseVisitor<AST>() {
     override fun visitCfg_rules(ctx: GrammarParser.Cfg_rulesContext?): AST {
         if (ctx == null) throw ParserException("visitCfg_rules: context is empty")
         return if (ctx.childCount == 1) {
-            val l = visitCfg_rule(ctx.getChild(0) as GrammarParser.Cfg_ruleContext)
-            CFG_Rules(l, null)
+            val l = visitCfg_rule(ctx.getChild(0) as GrammarParser.Cfg_ruleContext) as CFG_Rule
+            CFG_Rules(null, l)
         } else {
-            val l = visitCfg_rules(ctx.getChild(0) as GrammarParser.Cfg_rulesContext)
-            val r = visitCfg_rule(ctx.getChild(1) as GrammarParser.Cfg_ruleContext)
+            val l = visitCfg_rules(ctx.getChild(0) as GrammarParser.Cfg_rulesContext) as CFG_Rules
+            val r = visitCfg_rule(ctx.getChild(1) as GrammarParser.Cfg_ruleContext) as CFG_Rule
             CFG_Rules(l, r)
         }
     }
