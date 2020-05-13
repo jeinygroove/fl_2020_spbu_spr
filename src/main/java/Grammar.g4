@@ -16,9 +16,9 @@ end: newline | eof;
 newline: NEWLINE;
 eof: EOF;
 
-NAME: '<'[A-Z]+'>';
+NAME: '<'[A-Z0-9]+'>';
 DEL: '|';
-SYMBOL: ('/'[a-z]+ | '<eps>');
+SYMBOL: ('/'[a-z0-9]+ | '<eps>');
 WS: [\t]+ -> skip;
 WHITESPACE: ' ' -> skip;
 NEWLINE: [\n]+;
