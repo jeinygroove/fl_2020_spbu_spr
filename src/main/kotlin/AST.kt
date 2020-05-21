@@ -18,6 +18,8 @@ data class Delimeter(val del: String = "|"): AST()
 
 data class Epsilon(val symbol: String = "\u03b5"): AST()
 
+data class EpsilonOrTerminal(val symbol: String): AST()
+
 // Print methods for AST
 fun AST.print() {
     when(this) {
@@ -29,6 +31,7 @@ fun AST.print() {
         is Terminal -> print()
         is Epsilon -> print()
         is Delimeter -> print()
+        is EpsilonOrTerminal -> print()
     }
 }
 
@@ -48,6 +51,8 @@ fun Epsilon.print() = print(this.str())
 
 fun Delimeter.print() = print(this.str())
 
+fun EpsilonOrTerminal.print() = print(this.str())
+
 fun AST.str(): String =
     when(this) {
         is CFG_Rules -> str()
@@ -58,14 +63,12 @@ fun AST.str(): String =
         is Terminal -> str()
         is Epsilon -> str()
         is Delimeter -> str()
+        is EpsilonOrTerminal -> str()
     }
 
 fun CFG_Rules.str(): String {
     val ans = l?.str().orEmpty()
-    return if (r != null)
-        ans + "\n" + r.str()
-    else
-        ans
+    return ans + "\n" + r.str()
 }
 
 fun CFG_Rule.str(): String {
@@ -98,8 +101,14 @@ fun Delimeter.str(): String {
     return "|"
 }
 
-class ParserException(message:String): ParseCancellationException(message)
+fun EpsilonOrTerminal.str(): String {
+    return symbol
+}
+
+class ParserException(message: String): ParseCancellationException(message)
 class EmptyLanguageException(): Exception()
+class NotInCNFException(message: String): Exception()
+class TerminalsNotFromAlphabet(message: String): Exception()
 
 fun AST.isEpsilon(): Boolean {
     return this is Epsilon

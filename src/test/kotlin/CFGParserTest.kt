@@ -1,41 +1,7 @@
-import junit.framework.TestCase.assertEquals
-import org.antlr.v4.runtime.CharStreams
-import org.antlr.v4.runtime.CommonTokenStream
-import org.junit.Test
-import java.io.File
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 internal class CFGParserTest {
-    private fun init(input: String) {
-        val filename = "tmp.txt"
-        val file = File(filename)
-        file.createNewFile()
-        file.writeText(input)
-    }
-
-    private fun clear() {
-        val filename = "tmp.txt"
-        val file = File(filename)
-        file.deleteOnExit()
-    }
-
-    private fun parse(filename: String = "tmp.txt"): AST {
-        val charStream = CharStreams.fromFileName(filename)
-
-        val lexer = GrammarLexer(charStream)
-        lexer.removeErrorListeners();
-        lexer.addErrorListener(GrammarErrorListener.INSTANCE)
-
-        val commonTokenStream = CommonTokenStream(lexer)
-
-        val parser = GrammarParser(commonTokenStream)
-        parser.removeErrorListeners();
-        parser.addErrorListener(GrammarErrorListener.INSTANCE)
-
-        val parseTree = parser.cfg_rules();
-        val visitor = CFGVisitor()
-        return visitor.visit(parseTree)
-    }
-
     @Test
     fun testTerminals() {
         init("<S> -> /u/n/o")

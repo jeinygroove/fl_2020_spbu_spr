@@ -488,3 +488,20 @@ class CNFconverter(val start_nonterminal: Nonterminal, rules: CFG_Rules) {
         return start
     }
 }
+
+fun isInCNF(start: Nonterminal, rules: Set<SimpleRule>): Boolean {
+    if (rules.any { rule -> rule.second.list.size > 2 })
+        return false
+    return rules.all { rule ->
+        if (rule.second.list.size == 1) {
+            if (rule.second.list[0].isNonterminal())
+                false
+            else !(rule.second.list[0].isEpsilon() && rule.first != start)
+        } else {
+            if (rule.second.list.all { it.isNonterminal() })
+                return rule.second.list.all { it != start }
+            else
+                false
+        }
+    }
+}
